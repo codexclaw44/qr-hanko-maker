@@ -316,7 +316,7 @@
         }
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
   </head>
   <body>
     <main class="shell">
@@ -438,10 +438,6 @@
           return trimmed;
         }
         return `https://${trimmed}`;
-      }
-
-      function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
       }
 
       function pickFontSize(len, sealSize, style) {
@@ -570,14 +566,46 @@
         return {
           stampRatio,
           whiteRatio,
-          qrWidth: 1200,
-          margin: 4,
-          errorCorrectionLevel: "H",
-          color: {
-            dark: "#1e1713",
-            light: "#fffdf8",
-          },
           text: text.trim() || "印",
+        };
+      }
+
+      function drawQrCode(context, url, size) {
+        const qr = qrcode(0, "H");
+        qr.addData(url);
+        qr.make();
+
+        const count = qr.getModuleCount();
+        const quietZone = Math.floor(size * 0.08);
+        const usable = size - quietZone * 2;
+        const moduleSize = Math.floor(usable / count);
+        const actualSize = moduleSize * count;
+        const offset = Math.floor((size - actualSize) / 2);
+
+        context.clearRect(0, 0, size, size);
+        context.fillStyle = "#fffdf8";
+        context.fillRect(0, 0, size, size);
+        context.fillStyle = "#1e1713";
+
+        for (let row = 0; row < count; row += 1) {
+          for (let col = 0; col < count; col += 1) {
+            if (qr.isDark(row, col)) {
+              context.fillRect(
+                offset + col * moduleSize,
+                offset + row * moduleSize,
+                moduleSize,
+                moduleSize,
+              );
+            }
+          }
+        }
+
+        return {
+          count,
+          moduleSize,
+          offset,
+          actualSize,
+          quietZone,
         };
       }
 
@@ -594,7 +622,7 @@
           return;
         }
 
-        if (!window.QRCode) {
+        if (typeof qrcode !== "function") {
           statusEl.textContent = "QRライブラリを読み込み中です。";
           return;
         }
@@ -602,7 +630,7 @@
         const settings = getQrSettings(hankoText || "印");
 
         try {
-          await QRCode.toCanvas(canvas, normalizedUrl, settings);
+          drawQrCode(ctx, normalizedUrl, canvas.width);
 
           const sealSize = Math.round(canvas.width * settings.stampRatio);
           const whiteSize = Math.round(canvas.width * settings.whiteRatio);
