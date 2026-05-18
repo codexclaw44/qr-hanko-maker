@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>qr-hanko-maker</title>
+    <meta
+      name="description"
+      content="QRコードの中央にロゴを置くように、はんこを中央に配置した画像を作るためのWebアプリ"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe7;
+        --panel: #fffaf2;
+        --ink: #1f1a17;
+        --muted: #63584f;
+        --accent: #b0432f;
+        --accent-soft: rgba(176, 67, 47, 0.12);
+        --line: rgba(31, 26, 23, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(176, 67, 47, 0.08), transparent 32%),
+          radial-gradient(circle at bottom right, rgba(31, 26, 23, 0.06), transparent 28%),
+          var(--bg);
+      }
+
+      .wrap {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+      }
+
+      .card {
+        width: min(920px, 100%);
+        background: rgba(255, 250, 242, 0.88);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: 0 24px 80px rgba(31, 26, 23, 0.12);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        padding: 40px 32px 28px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.875rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      h1 {
+        margin: 18px 0 10px;
+        font-size: clamp(2.2rem, 5vw, 4.5rem);
+        line-height: 1.02;
+        letter-spacing: -0.04em;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 52ch;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.8;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 0;
+      }
+
+      .panel {
+        padding: 28px 32px 34px;
+      }
+
+      .panel + .panel {
+        border-left: 1px solid var(--line);
+      }
+
+      .left {
+        grid-column: span 7;
+      }
+
+      .right {
+        grid-column: span 5;
+        background: linear-gradient(180deg, rgba(176, 67, 47, 0.06), transparent 72%);
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 1.1rem;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 1.2rem;
+        color: var(--muted);
+        line-height: 1.9;
+      }
+
+      .stamp {
+        margin-top: 20px;
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px dashed rgba(176, 67, 47, 0.45);
+        background: rgba(255, 255, 255, 0.66);
+      }
+
+      .stamp-inner {
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 10px solid rgba(176, 67, 47, 0.85);
+        color: var(--accent);
+        font-size: clamp(1.2rem, 2vw, 1.8rem);
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-indent: 0.22em;
+        text-transform: uppercase;
+        background:
+          radial-gradient(circle at center, rgba(176, 67, 47, 0.08), transparent 58%),
+          #fff;
+      }
+
+      .footer {
+        padding: 16px 32px 30px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      @media (max-width: 780px) {
+        .hero,
+        .panel,
+        .footer {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+
+        .left,
+        .right {
+          grid-column: span 12;
+        }
+
+        .panel + .panel {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card" aria-label="qr-hanko-maker">
+        <header class="hero">
+          <div class="eyebrow">Prototype · GitHub Pages</div>
+          <h1>中央にはんこを置く、<br />画像生成Webアプリ</h1>
+          <p class="lead">
+            QRコードの中央にロゴを置く発想を、はんこ画像に置き換えたプロトタイプ。
+            まずは構図の気持ちよさと、操作の軽さを優先して育てる。
+          </p>
+        </header>
+
+        <div class="grid">
+          <section class="panel left">
+            <h2>実現プラン</h2>
+            <ul>
+              <li>はんこ画像をアップロードして中央に配置</li>
+              <li>余白、サイズ、回転、透過を調整できるようにする</li>
+              <li>PNG / JPG で書き出してすぐ使えるようにする</li>
+              <li>まずは GitHub Pages で公開して触れる状態にする</li>
+            </ul>
+            <div class="stamp">
+              <div class="stamp-inner">HANKO</div>
+            </div>
+          </section>
+
+          <aside class="panel right">
+            <h2>次の一手</h2>
+            <ul>
+              <li>UI の最小版を作る</li>
+              <li>画像合成のロジックを入れる</li>
+              <li>共有しやすい出力に整える</li>
+            </ul>
+          </aside>
+        </div>
+
+        <div class="footer">
+          Issue: <a href="https://github.com/codexclaw44/qr-hanko-maker/issues/1">#1</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
