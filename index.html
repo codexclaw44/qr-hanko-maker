@@ -443,10 +443,10 @@
       function pickFontSize(len, sealSize, style) {
         const base =
           style === "bold"
-            ? sealSize * 0.34
+            ? sealSize * 0.37
             : style === "compact"
-              ? sealSize * 0.31
-              : sealSize * 0.32;
+              ? sealSize * 0.34
+              : sealSize * 0.35;
 
         if (len <= 2) return base * 1.08;
         if (len <= 4) return base * 0.88;
@@ -489,27 +489,27 @@
         context.translate(size / 2, size / 2);
 
         const baseShadow = style === "bold" ? 18 : 14;
-        context.shadowColor = "rgba(97, 28, 20, 0.18)";
-        context.shadowBlur = baseShadow;
+        context.shadowColor = "rgba(97, 28, 20, 0.12)";
+        context.shadowBlur = baseShadow * 0.75;
         context.shadowOffsetY = 6;
 
         context.fillStyle = "#fffdf8";
         context.beginPath();
-        context.arc(0, 0, size * 0.64, 0, Math.PI * 2);
+        context.arc(0, 0, size * 0.43, 0, Math.PI * 2);
         context.fill();
 
         context.shadowColor = "transparent";
-        context.lineWidth = size * 0.08;
+        context.lineWidth = size * 0.06;
         context.strokeStyle = "#bb3f2a";
         context.beginPath();
-        context.arc(0, 0, size * 0.595, 0, Math.PI * 2);
+        context.arc(0, 0, size * 0.385, 0, Math.PI * 2);
         context.stroke();
 
         const layout = splitTextForSeal(text);
         const textColor = "#b43d29";
         const totalLines = layout.lines.length;
-        const fontSize = pickFontSize(text.length, size, style) * 1.08;
-        const lineGap = fontSize * 0.11;
+        const fontSize = pickFontSize(text.length, size, style) * 1.16;
+        const lineGap = fontSize * 0.05;
 
         context.fillStyle = textColor;
         context.textAlign = "center";
@@ -517,18 +517,18 @@
         context.font = `700 ${Math.round(fontSize)}px "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif`;
 
         if (layout.mode === "stack") {
-          const spread = totalLines === 1 ? 0 : fontSize * 0.45;
+          const spread = totalLines === 1 ? 0 : fontSize * 0.32;
           layout.lines.forEach((char, index) => {
             const y = (index - (totalLines - 1) / 2) * spread;
             context.fillText(char, 0, y);
           });
         } else if (layout.mode === "two-line") {
-          const startY = -fontSize * 0.42;
+          const startY = -fontSize * 0.31;
           layout.lines.forEach((line, index) => {
             context.fillText(line, 0, startY + index * (fontSize + lineGap));
           });
         } else {
-          const lineHeight = fontSize * 0.92;
+          const lineHeight = fontSize * 0.84;
           const blockHeight = (totalLines - 1) * (lineHeight + lineGap);
           layout.lines.forEach((line, index) => {
             const y = index * (lineHeight + lineGap) - blockHeight / 2;
@@ -542,7 +542,7 @@
       function getQrSettings(text) {
         const style = styleInput.value;
         const stampRatio =
-          style === "bold" ? 0.34 : style === "compact" ? 0.27 : 0.3;
+          style === "bold" ? 0.47 : style === "compact" ? 0.39 : 0.43;
 
         return {
           stampRatio,
