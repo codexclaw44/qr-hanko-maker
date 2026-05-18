@@ -461,6 +461,29 @@
         });
       }
 
+      function drawSealBackdrop(context, size, shape) {
+        context.beginPath();
+        if (shape === "square") {
+          const radius = Math.max(10, size * 0.14);
+          const inset = size * 0.02;
+          const x = -size / 2 + inset;
+          const y = -size / 2 + inset;
+          const width = size - inset * 2;
+          const height = size - inset * 2;
+          const r = Math.min(radius, width / 2, height / 2);
+          context.moveTo(x + r, y);
+          context.arcTo(x + width, y, x + width, y + height, r);
+          context.arcTo(x + width, y + height, x, y + height, r);
+          context.arcTo(x, y + height, x, y, r);
+          context.arcTo(x, y, x + width, y, r);
+          context.closePath();
+        } else {
+          context.arc(0, 0, size * 0.5, 0, Math.PI * 2);
+        }
+        context.fillStyle = "#fffdf8";
+        context.fill();
+      }
+
       function getQrSettings(text) {
         const style = styleInput.value;
         const stampRatio =
@@ -551,6 +574,7 @@
           ctx.shadowColor = "rgba(31, 26, 23, 0.15)";
           ctx.shadowBlur = 20;
           ctx.shadowOffsetY = 8;
+          drawSealBackdrop(ctx, sealSize, shapeInput.value === "square" ? "square" : "circle");
 
           ctx.shadowColor = "transparent";
           ctx.drawImage(sealImage, -sealSize / 2, -sealSize / 2, sealSize, sealSize);
