@@ -171,7 +171,7 @@
 
       .inline-row {
         display: grid;
-        grid-template-columns: 1fr 170px;
+        grid-template-columns: 1fr 170px 170px;
         gap: 14px;
       }
 
@@ -316,7 +316,7 @@
         }
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   </head>
   <body>
     <main class="shell">
@@ -363,6 +363,14 @@
                     value="高橋"
                     placeholder="高橋"
                   />
+                </div>
+
+                <div class="field">
+                  <label for="shapeInput">形</label>
+                  <select id="shapeInput">
+                    <option value="circle">丸印</option>
+                    <option value="square">角印</option>
+                  </select>
                 </div>
 
                 <div class="field">
@@ -413,9 +421,12 @@
       </section>
     </main>
 
-    <script>
+    <script type="module">
+      import { createHankoSvg, svgToDataUri } from "./hanko.js";
+
       const urlInput = document.getElementById("urlInput");
       const textInput = document.getElementById("textInput");
+      const shapeInput = document.getElementById("shapeInput");
       const styleInput = document.getElementById("styleInput");
       const generateBtn = document.getElementById("generateBtn");
       const downloadBtn = document.getElementById("downloadBtn");
@@ -428,6 +439,7 @@
       const sample = {
         url: "https://example.com",
         text: "高橋",
+        shape: "circle",
         style: "standard",
       };
 
@@ -440,103 +452,13 @@
         return `https://${trimmed}`;
       }
 
-      function pickFontSize(len, sealSize, style) {
-        const base =
-          style === "bold"
-            ? sealSize * 0.37
-            : style === "compact"
-              ? sealSize * 0.34
-              : sealSize * 0.35;
-
-        if (len <= 2) return base * 1.08;
-        if (len <= 4) return base * 0.88;
-        return base * 0.76;
-      }
-
-      function splitTextForSeal(text) {
-        const chars = [...text.trim()];
-        if (chars.length <= 2) {
-          return {
-            mode: "stack",
-            lines: chars.length ? chars : ["印"],
-          };
-        }
-
-        if (chars.length <= 4) {
-          const top = chars.slice(0, Math.ceil(chars.length / 2)).join("");
-          const bottom = chars.slice(Math.ceil(chars.length / 2)).join("");
-          return {
-            mode: "two-line",
-            lines: [top, bottom],
-          };
-        }
-
-        const rowCount = chars.length > 8 ? 4 : 3;
-        const lines = [];
-        const chunk = Math.ceil(chars.length / rowCount);
-        for (let index = 0; index < chars.length; index += chunk) {
-          lines.push(chars.slice(index, index + chunk).join(""));
-        }
-        return {
-          mode: "multi",
-          lines: lines.slice(0, 4),
-        };
-      }
-
-      function drawStamp(context, text, size, style) {
-        context.save();
-        context.clearRect(0, 0, size, size);
-        context.translate(size / 2, size / 2);
-
-        const baseShadow = style === "bold" ? 18 : 14;
-        context.shadowColor = "rgba(97, 28, 20, 0.12)";
-        context.shadowBlur = baseShadow * 0.75;
-        context.shadowOffsetY = 6;
-
-        context.fillStyle = "#fffdf8";
-        context.beginPath();
-        context.arc(0, 0, size * 0.43, 0, Math.PI * 2);
-        context.fill();
-
-        context.shadowColor = "transparent";
-        context.lineWidth = size * 0.06;
-        context.strokeStyle = "#bb3f2a";
-        context.beginPath();
-        context.arc(0, 0, size * 0.385, 0, Math.PI * 2);
-        context.stroke();
-
-        const layout = splitTextForSeal(text);
-        const textColor = "#b43d29";
-        const totalLines = layout.lines.length;
-        const fontSize = pickFontSize(text.length, size, style) * 1.16;
-        const lineGap = fontSize * 0.05;
-
-        context.fillStyle = textColor;
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-        context.font = `700 ${Math.round(fontSize)}px "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif`;
-
-        if (layout.mode === "stack") {
-          const spread = totalLines === 1 ? 0 : fontSize * 0.32;
-          layout.lines.forEach((char, index) => {
-            const y = (index - (totalLines - 1) / 2) * spread;
-            context.fillText(char, 0, y);
-          });
-        } else if (layout.mode === "two-line") {
-          const startY = -fontSize * 0.31;
-          layout.lines.forEach((line, index) => {
-            context.fillText(line, 0, startY + index * (fontSize + lineGap));
-          });
-        } else {
-          const lineHeight = fontSize * 0.84;
-          const blockHeight = (totalLines - 1) * (lineHeight + lineGap);
-          layout.lines.forEach((line, index) => {
-            const y = index * (lineHeight + lineGap) - blockHeight / 2;
-            context.fillText(line, 0, y);
-          });
-        }
-
-        context.restore();
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error("SVG image load failed"));
+          image.src = src;
+        });
       }
 
       function getQrSettings(text) {
@@ -593,7 +515,6 @@
         const rawUrl = urlInput.value;
         const normalizedUrl = normalizeUrl(rawUrl);
         const hankoText = textInput.value.trim();
-        const style = styleInput.value;
 
         if (!normalizedUrl) {
           statusEl.textContent = "URLを入れてください。";
@@ -613,12 +534,13 @@
           drawQrCode(ctx, normalizedUrl, canvas.width);
 
           const sealSize = Math.round(canvas.width * settings.stampRatio);
-          const sealCanvas = document.createElement("canvas");
-          sealCanvas.width = sealSize;
-          sealCanvas.height = sealSize;
-          const sealCtx = sealCanvas.getContext("2d");
-
-          drawStamp(sealCtx, settings.text, sealSize, style);
+          const sealSvg = createHankoSvg({
+            text: settings.text,
+            shape: shapeInput.value === "square" ? "square" : "circle",
+            color: "#b5442b",
+            transparent: true,
+          });
+          const sealImage = await loadImage(svgToDataUri(sealSvg));
 
           const centerX = canvas.width / 2;
           const centerY = canvas.height / 2;
@@ -631,12 +553,12 @@
           ctx.shadowOffsetY = 8;
 
           ctx.shadowColor = "transparent";
-          ctx.drawImage(sealCanvas, -sealSize / 2, -sealSize / 2, sealSize, sealSize);
+          ctx.drawImage(sealImage, -sealSize / 2, -sealSize / 2, sealSize, sealSize);
           ctx.restore();
 
           statusEl.textContent = `生成しました。${normalizedUrl}`;
           previewNote.textContent =
-            "QR そのものを朱色にして、中央はスタンプの丸い白地だけで見せています。四角い余白は外しました。";
+            "印影は SVG で作っているので、輪郭やかすれを少しきれいに制御できるようになっています。";
         } catch (error) {
           console.error(error);
           statusEl.textContent = "生成に失敗しました。URLか入力文字を見直してください。";
@@ -665,6 +587,7 @@
       function restoreSample() {
         urlInput.value = sample.url;
         textInput.value = sample.text;
+        shapeInput.value = sample.shape;
         styleInput.value = sample.style;
         render();
       }
@@ -680,6 +603,7 @@
       sampleBtn.addEventListener("click", restoreSample);
       urlInput.addEventListener("input", scheduleRender);
       textInput.addEventListener("input", scheduleRender);
+      shapeInput.addEventListener("change", render);
       styleInput.addEventListener("change", render);
 
       window.addEventListener("load", () => {
