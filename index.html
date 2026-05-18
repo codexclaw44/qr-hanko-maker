@@ -499,23 +499,17 @@
         context.fill();
 
         context.shadowColor = "transparent";
-        context.lineWidth = size * 0.075;
+        context.lineWidth = size * 0.08;
         context.strokeStyle = "#bb3f2a";
         context.beginPath();
-        context.arc(0, 0, size * 0.58, 0, Math.PI * 2);
-        context.stroke();
-
-        context.lineWidth = size * 0.024;
-        context.strokeStyle = "rgba(187, 63, 42, 0.55)";
-        context.beginPath();
-        context.arc(0, 0, size * 0.49, 0, Math.PI * 2);
+        context.arc(0, 0, size * 0.595, 0, Math.PI * 2);
         context.stroke();
 
         const layout = splitTextForSeal(text);
         const textColor = "#b43d29";
         const totalLines = layout.lines.length;
-        const fontSize = pickFontSize(text.length, size, style);
-        const lineGap = fontSize * 0.18;
+        const fontSize = pickFontSize(text.length, size, style) * 1.08;
+        const lineGap = fontSize * 0.11;
 
         context.fillStyle = textColor;
         context.textAlign = "center";
@@ -523,18 +517,18 @@
         context.font = `700 ${Math.round(fontSize)}px "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif`;
 
         if (layout.mode === "stack") {
-          const spread = totalLines === 1 ? 0 : fontSize * 0.56;
+          const spread = totalLines === 1 ? 0 : fontSize * 0.45;
           layout.lines.forEach((char, index) => {
             const y = (index - (totalLines - 1) / 2) * spread;
             context.fillText(char, 0, y);
           });
         } else if (layout.mode === "two-line") {
-          const startY = -fontSize * 0.5;
+          const startY = -fontSize * 0.42;
           layout.lines.forEach((line, index) => {
-            context.fillText(line, 0, startY + index * (fontSize + lineGap * 1.3));
+            context.fillText(line, 0, startY + index * (fontSize + lineGap));
           });
         } else {
-          const lineHeight = fontSize * 0.98;
+          const lineHeight = fontSize * 0.92;
           const blockHeight = (totalLines - 1) * (lineHeight + lineGap);
           layout.lines.forEach((line, index) => {
             const y = index * (lineHeight + lineGap) - blockHeight / 2;
