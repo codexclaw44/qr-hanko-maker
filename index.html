@@ -453,17 +453,6 @@
         return base * 0.76;
       }
 
-      function drawRoundedRect(context, x, y, width, height, radius) {
-        const r = Math.min(radius, width / 2, height / 2);
-        context.beginPath();
-        context.moveTo(x + r, y);
-        context.arcTo(x + width, y, x + width, y + height, r);
-        context.arcTo(x + width, y + height, x, y + height, r);
-        context.arcTo(x, y + height, x, y, r);
-        context.arcTo(x, y, x + width, y, r);
-        context.closePath();
-      }
-
       function splitTextForSeal(text) {
         const chars = [...text.trim()];
         if (chars.length <= 2) {
@@ -560,12 +549,9 @@
         const style = styleInput.value;
         const stampRatio =
           style === "bold" ? 0.255 : style === "compact" ? 0.215 : 0.235;
-        const whiteRatio =
-          style === "bold" ? 0.37 : style === "compact" ? 0.32 : 0.34;
 
         return {
           stampRatio,
-          whiteRatio,
           text: text.trim() || "印",
         };
       }
@@ -585,7 +571,7 @@
         context.clearRect(0, 0, size, size);
         context.fillStyle = "#fffdf8";
         context.fillRect(0, 0, size, size);
-        context.fillStyle = "#1e1713";
+        context.fillStyle = "#b5442b";
 
         for (let row = 0; row < count; row += 1) {
           for (let col = 0; col < count; col += 1) {
@@ -633,7 +619,6 @@
           drawQrCode(ctx, normalizedUrl, canvas.width);
 
           const sealSize = Math.round(canvas.width * settings.stampRatio);
-          const whiteSize = Math.round(canvas.width * settings.whiteRatio);
           const sealCanvas = document.createElement("canvas");
           sealCanvas.width = sealSize;
           sealCanvas.height = sealSize;
@@ -651,24 +636,13 @@
           ctx.shadowBlur = 20;
           ctx.shadowOffsetY = 8;
 
-          drawRoundedRect(
-            ctx,
-            -whiteSize / 2,
-            -whiteSize / 2,
-            whiteSize,
-            whiteSize,
-            whiteSize * 0.2,
-          );
-          ctx.fillStyle = "#fffdf8";
-          ctx.fill();
-
           ctx.shadowColor = "transparent";
           ctx.drawImage(sealCanvas, -sealSize / 2, -sealSize / 2, sealSize, sealSize);
           ctx.restore();
 
           statusEl.textContent = `生成しました。${normalizedUrl}`;
           previewNote.textContent =
-            "中央の白いマスクの上に、はんこを重ねています。読み取り性を優先しつつ、見た目も崩れにくい構成です。";
+            "QR そのものを朱色にして、中央はスタンプの丸い白地だけで見せています。四角い余白は外しました。";
         } catch (error) {
           console.error(error);
           statusEl.textContent = "生成に失敗しました。URLか入力文字を見直してください。";
