@@ -6,54 +6,62 @@
     <title>qr-hanko-maker</title>
     <meta
       name="description"
-      content="QRコードの中央にロゴを置くように、はんこを中央に配置した画像を作るためのWebアプリ"
+      content="URL と はんこ文字から、はんこを中央に組み込んだQRコードを生成するWebアプリ"
     />
     <style>
       :root {
         color-scheme: light;
         --bg: #f4efe7;
-        --panel: #fffaf2;
+        --bg-2: #efe3d5;
+        --paper: rgba(255, 250, 242, 0.92);
+        --paper-strong: #fffaf2;
         --ink: #1f1a17;
-        --muted: #63584f;
-        --accent: #b0432f;
-        --accent-soft: rgba(176, 67, 47, 0.12);
+        --muted: #65584e;
+        --accent: #b5442b;
+        --accent-2: #8f2a1d;
         --line: rgba(31, 26, 23, 0.12);
+        --shadow: 0 28px 90px rgba(31, 26, 23, 0.14);
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--ink);
         background:
-          radial-gradient(circle at top left, rgba(176, 67, 47, 0.08), transparent 32%),
-          radial-gradient(circle at bottom right, rgba(31, 26, 23, 0.06), transparent 28%),
-          var(--bg);
+          radial-gradient(circle at 15% 12%, rgba(181, 68, 43, 0.09), transparent 28%),
+          radial-gradient(circle at 85% 16%, rgba(31, 26, 23, 0.05), transparent 24%),
+          radial-gradient(circle at 88% 84%, rgba(181, 68, 43, 0.08), transparent 24%),
+          linear-gradient(180deg, var(--bg), var(--bg-2));
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
-      .wrap {
+      .shell {
         min-height: 100vh;
         display: grid;
         place-items: center;
-        padding: 32px 20px;
+        padding: 28px 18px 40px;
       }
 
       .card {
-        width: min(920px, 100%);
-        background: rgba(255, 250, 242, 0.88);
+        width: min(1120px, 100%);
         border: 1px solid var(--line);
-        border-radius: 28px;
-        box-shadow: 0 24px 80px rgba(31, 26, 23, 0.12);
-        overflow: hidden;
-        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+        overflow: clip;
       }
 
       .hero {
-        padding: 40px 32px 28px;
+        padding: 34px 32px 24px;
         border-bottom: 1px solid var(--line);
       }
 
@@ -63,92 +71,205 @@
         gap: 8px;
         padding: 8px 14px;
         border-radius: 999px;
-        background: var(--accent-soft);
+        background: rgba(181, 68, 43, 0.12);
         color: var(--accent);
-        font-size: 0.875rem;
+        font-size: 0.86rem;
         font-weight: 700;
         letter-spacing: 0.04em;
       }
 
       h1 {
-        margin: 18px 0 10px;
-        font-size: clamp(2.2rem, 5vw, 4.5rem);
-        line-height: 1.02;
-        letter-spacing: -0.04em;
+        margin: 16px 0 8px;
+        font-family: Georgia, "Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif;
+        font-size: clamp(2.2rem, 5vw, 4.8rem);
+        line-height: 0.98;
+        letter-spacing: -0.05em;
       }
 
       .lead {
         margin: 0;
-        max-width: 52ch;
+        max-width: 60ch;
         color: var(--muted);
-        font-size: 1.05rem;
         line-height: 1.8;
+        font-size: 1.02rem;
       }
 
-      .grid {
+      .content {
         display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: 0;
+        grid-template-columns: 1.05fr 0.95fr;
       }
 
-      .panel {
-        padding: 28px 32px 34px;
+      .controls,
+      .preview {
+        padding: 28px 32px 32px;
       }
 
-      .panel + .panel {
+      .preview {
         border-left: 1px solid var(--line);
+        background:
+          radial-gradient(circle at top center, rgba(181, 68, 43, 0.07), transparent 44%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(181, 68, 43, 0.02));
       }
 
-      .left {
-        grid-column: span 7;
-      }
-
-      .right {
-        grid-column: span 5;
-        background: linear-gradient(180deg, rgba(176, 67, 47, 0.06), transparent 72%);
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
       }
 
       h2 {
-        margin: 0 0 14px;
-        font-size: 1.1rem;
-      }
-
-      ul {
         margin: 0;
-        padding-left: 1.2rem;
+        font-size: 1.02rem;
+        letter-spacing: 0.02em;
+      }
+
+      .hint {
         color: var(--muted);
-        line-height: 1.9;
+        font-size: 0.92rem;
       }
 
-      .stamp {
-        margin-top: 20px;
-        padding: 22px;
-        border-radius: 22px;
-        border: 1px dashed rgba(176, 67, 47, 0.45);
-        background: rgba(255, 255, 255, 0.66);
-      }
-
-      .stamp-inner {
-        aspect-ratio: 1;
+      .field-grid {
         display: grid;
-        place-items: center;
-        border-radius: 50%;
-        border: 10px solid rgba(176, 67, 47, 0.85);
+        gap: 18px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        border: 1px solid rgba(31, 26, 23, 0.14);
+        border-radius: 16px;
+        padding: 15px 16px;
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--ink);
+        font: inherit;
+        outline: none;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .field input:focus,
+      .field select:focus {
+        border-color: rgba(181, 68, 43, 0.52);
+        box-shadow: 0 0 0 4px rgba(181, 68, 43, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .inline-row {
+        display: grid;
+        grid-template-columns: 1fr 170px;
+        gap: 14px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 6px;
+      }
+
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 14px;
+        padding: 13px 18px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          opacity 0.18s ease,
+          background 0.18s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .primary {
+        color: #fff;
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        box-shadow: 0 14px 24px rgba(181, 68, 43, 0.24);
+      }
+
+      .secondary {
+        color: var(--ink);
+        background: rgba(31, 26, 23, 0.06);
+      }
+
+      .ghost {
         color: var(--accent);
-        font-size: clamp(1.2rem, 2vw, 1.8rem);
-        font-weight: 800;
-        letter-spacing: 0.22em;
-        text-indent: 0.22em;
-        text-transform: uppercase;
+        background: rgba(181, 68, 43, 0.1);
+      }
+
+      .meta {
+        display: grid;
+        gap: 6px;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.7;
+      }
+
+      .status {
+        min-height: 1.5em;
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .canvas-shell {
+        display: grid;
+        gap: 16px;
+      }
+
+      .preview-frame {
+        aspect-ratio: 1;
+        width: 100%;
+        border-radius: 24px;
+        border: 1px solid rgba(31, 26, 23, 0.12);
         background:
-          radial-gradient(circle at center, rgba(176, 67, 47, 0.08), transparent 58%),
-          #fff;
+          linear-gradient(45deg, rgba(31, 26, 23, 0.04) 25%, transparent 25%, transparent 75%, rgba(31, 26, 23, 0.04) 75%),
+          linear-gradient(45deg, rgba(31, 26, 23, 0.04) 25%, transparent 25%, transparent 75%, rgba(31, 26, 23, 0.04) 75%),
+          #fffdf9;
+        background-position:
+          0 0,
+          16px 16px;
+        background-size: 32px 32px;
+        padding: 18px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 18px;
       }
 
       .footer {
-        padding: 16px 32px 30px;
+        padding: 16px 32px 28px;
         color: var(--muted);
-        font-size: 0.95rem;
+        border-top: 1px solid var(--line);
+        font-size: 0.94rem;
       }
 
       .footer a {
@@ -156,59 +277,133 @@
         text-decoration: none;
       }
 
-      @media (max-width: 780px) {
-        .hero,
-        .panel,
-        .footer {
-          padding-left: 20px;
-          padding-right: 20px;
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      .note {
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(181, 68, 43, 0.08);
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.7;
+      }
+
+      @media (max-width: 920px) {
+        .content {
+          grid-template-columns: 1fr;
         }
 
-        .left,
-        .right {
-          grid-column: span 12;
-        }
-
-        .panel + .panel {
+        .preview {
           border-left: 0;
           border-top: 1px solid var(--line);
         }
       }
+
+      @media (max-width: 720px) {
+        .hero,
+        .controls,
+        .preview,
+        .footer {
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+
+        .inline-row {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" defer></script>
   </head>
   <body>
-    <main class="wrap">
+    <main class="shell">
       <section class="card" aria-label="qr-hanko-maker">
         <header class="hero">
-          <div class="eyebrow">Prototype · GitHub Pages</div>
-          <h1>中央にはんこを置く、<br />画像生成Webアプリ</h1>
+          <div class="eyebrow">QR Hanko Maker · GitHub Pages</div>
+          <h1>URL と はんこ文字で、<br />はんこ入りQRコードを作る</h1>
           <p class="lead">
-            QRコードの中央にロゴを置く発想を、はんこ画像に置き換えたプロトタイプ。
-            まずは構図の気持ちよさと、操作の軽さを優先して育てる。
+            URLを入れて、はんこにしたい文字を打つだけ。
+            中央に朱肉っぽい印影を置いたQRコードを、その場で生成してPNGで落とせます。
           </p>
         </header>
 
-        <div class="grid">
-          <section class="panel left">
-            <h2>実現プラン</h2>
-            <ul>
-              <li>はんこ画像をアップロードして中央に配置</li>
-              <li>余白、サイズ、回転、透過を調整できるようにする</li>
-              <li>PNG / JPG で書き出してすぐ使えるようにする</li>
-              <li>まずは GitHub Pages で公開して触れる状態にする</li>
-            </ul>
-            <div class="stamp">
-              <div class="stamp-inner">HANKO</div>
+        <div class="content">
+          <section class="controls">
+            <div class="section-title">
+              <h2>入力</h2>
+              <div class="hint">まずは最小構成で動くやつです</div>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="urlInput">URL</label>
+                <input
+                  id="urlInput"
+                  type="text"
+                  inputmode="url"
+                  autocomplete="off"
+                  spellcheck="false"
+                  value="https://example.com"
+                  placeholder="https://example.com"
+                />
+              </div>
+
+              <div class="inline-row">
+                <div class="field">
+                  <label for="textInput">はんこ文字</label>
+                  <input
+                    id="textInput"
+                    type="text"
+                    maxlength="12"
+                    autocomplete="off"
+                    spellcheck="false"
+                    value="高橋"
+                    placeholder="高橋"
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="styleInput">サイズ感</label>
+                  <select id="styleInput">
+                    <option value="standard">標準</option>
+                    <option value="bold">太め</option>
+                    <option value="compact">小さめ</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="primary" id="generateBtn" type="button">生成する</button>
+                <button class="secondary" id="downloadBtn" type="button">PNGをダウンロード</button>
+                <button class="ghost" id="sampleBtn" type="button">サンプルに戻す</button>
+              </div>
+
+              <div class="status" id="status" aria-live="polite"></div>
+            </div>
+
+            <div class="meta">
+              <div>・中央の白い余白を確保して、QRの読み取りを壊しにくくしています。</div>
+              <div>・`example.com` みたいな入力でも `https://` を自動補完します。</div>
             </div>
           </section>
 
-          <aside class="panel right">
-            <h2>次の一手</h2>
-            <ul>
-              <li>UI の最小版を作る</li>
-              <li>画像合成のロジックを入れる</li>
-              <li>共有しやすい出力に整える</li>
-            </ul>
+          <aside class="preview">
+            <div class="section-title">
+              <h2>プレビュー</h2>
+              <div class="hint">中央に印影を重ねた状態</div>
+            </div>
+
+            <div class="canvas-shell">
+              <div class="preview-frame">
+                <canvas id="preview" width="1200" height="1200"></canvas>
+              </div>
+              <div class="note" id="previewNote">
+                ここにQRコードが出ます。スマホで読み取れるように、はんこの面積は控えめにしてあります。
+              </div>
+            </div>
           </aside>
         </div>
 
@@ -217,5 +412,283 @@
         </div>
       </section>
     </main>
+
+    <script>
+      const urlInput = document.getElementById("urlInput");
+      const textInput = document.getElementById("textInput");
+      const styleInput = document.getElementById("styleInput");
+      const generateBtn = document.getElementById("generateBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const sampleBtn = document.getElementById("sampleBtn");
+      const statusEl = document.getElementById("status");
+      const previewNote = document.getElementById("previewNote");
+      const canvas = document.getElementById("preview");
+      const ctx = canvas.getContext("2d");
+
+      const sample = {
+        url: "https://example.com",
+        text: "高橋",
+        style: "standard",
+      };
+
+      function normalizeUrl(value) {
+        const trimmed = value.trim();
+        if (!trimmed) return "";
+        if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)) {
+          return trimmed;
+        }
+        return `https://${trimmed}`;
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function pickFontSize(len, sealSize, style) {
+        const base =
+          style === "bold"
+            ? sealSize * 0.34
+            : style === "compact"
+              ? sealSize * 0.31
+              : sealSize * 0.32;
+
+        if (len <= 2) return base * 1.08;
+        if (len <= 4) return base * 0.88;
+        return base * 0.76;
+      }
+
+      function drawRoundedRect(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.beginPath();
+        context.moveTo(x + r, y);
+        context.arcTo(x + width, y, x + width, y + height, r);
+        context.arcTo(x + width, y + height, x, y + height, r);
+        context.arcTo(x, y + height, x, y, r);
+        context.arcTo(x, y, x + width, y, r);
+        context.closePath();
+      }
+
+      function splitTextForSeal(text) {
+        const chars = [...text.trim()];
+        if (chars.length <= 2) {
+          return {
+            mode: "stack",
+            lines: chars.length ? chars : ["印"],
+          };
+        }
+
+        if (chars.length <= 4) {
+          const top = chars.slice(0, Math.ceil(chars.length / 2)).join("");
+          const bottom = chars.slice(Math.ceil(chars.length / 2)).join("");
+          return {
+            mode: "two-line",
+            lines: [top, bottom],
+          };
+        }
+
+        const rowCount = chars.length > 8 ? 4 : 3;
+        const lines = [];
+        const chunk = Math.ceil(chars.length / rowCount);
+        for (let index = 0; index < chars.length; index += chunk) {
+          lines.push(chars.slice(index, index + chunk).join(""));
+        }
+        return {
+          mode: "multi",
+          lines: lines.slice(0, 4),
+        };
+      }
+
+      function drawStamp(context, text, size, style) {
+        context.save();
+        context.clearRect(0, 0, size, size);
+        context.translate(size / 2, size / 2);
+
+        const baseShadow = style === "bold" ? 18 : 14;
+        context.shadowColor = "rgba(97, 28, 20, 0.18)";
+        context.shadowBlur = baseShadow;
+        context.shadowOffsetY = 6;
+
+        context.fillStyle = "#fffdf8";
+        context.beginPath();
+        context.arc(0, 0, size * 0.5, 0, Math.PI * 2);
+        context.fill();
+
+        context.shadowColor = "transparent";
+        context.lineWidth = size * 0.065;
+        context.strokeStyle = "#bb3f2a";
+        context.beginPath();
+        context.arc(0, 0, size * 0.46, 0, Math.PI * 2);
+        context.stroke();
+
+        context.lineWidth = size * 0.018;
+        context.strokeStyle = "rgba(187, 63, 42, 0.55)";
+        context.beginPath();
+        context.arc(0, 0, size * 0.325, 0, Math.PI * 2);
+        context.stroke();
+
+        const layout = splitTextForSeal(text);
+        const textColor = "#b43d29";
+        const totalLines = layout.lines.length;
+        const fontSize = pickFontSize(text.length, size, style);
+        const lineGap = fontSize * 0.18;
+
+        context.fillStyle = textColor;
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.font = `700 ${Math.round(fontSize)}px "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif`;
+
+        if (layout.mode === "stack") {
+          const spread = totalLines === 1 ? 0 : fontSize * 0.56;
+          layout.lines.forEach((char, index) => {
+            const y = (index - (totalLines - 1) / 2) * spread;
+            context.fillText(char, 0, y);
+          });
+        } else if (layout.mode === "two-line") {
+          const startY = -fontSize * 0.5;
+          layout.lines.forEach((line, index) => {
+            context.fillText(line, 0, startY + index * (fontSize + lineGap * 1.3));
+          });
+        } else {
+          const lineHeight = fontSize * 0.98;
+          const blockHeight = (totalLines - 1) * (lineHeight + lineGap);
+          layout.lines.forEach((line, index) => {
+            const y = index * (lineHeight + lineGap) - blockHeight / 2;
+            context.fillText(line, 0, y);
+          });
+        }
+
+        context.restore();
+      }
+
+      function getQrSettings(text) {
+        const style = styleInput.value;
+        const stampRatio =
+          style === "bold" ? 0.255 : style === "compact" ? 0.215 : 0.235;
+        const whiteRatio =
+          style === "bold" ? 0.37 : style === "compact" ? 0.32 : 0.34;
+
+        return {
+          stampRatio,
+          whiteRatio,
+          qrWidth: 1200,
+          margin: 4,
+          errorCorrectionLevel: "H",
+          color: {
+            dark: "#1e1713",
+            light: "#fffdf8",
+          },
+          text: text.trim() || "印",
+        };
+      }
+
+      async function render() {
+        const rawUrl = urlInput.value;
+        const normalizedUrl = normalizeUrl(rawUrl);
+        const hankoText = textInput.value.trim();
+        const style = styleInput.value;
+
+        if (!normalizedUrl) {
+          statusEl.textContent = "URLを入れてください。";
+          previewNote.textContent = "URLが空だとQRコードを作れません。";
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
+        if (!window.QRCode) {
+          statusEl.textContent = "QRライブラリを読み込み中です。";
+          return;
+        }
+
+        const settings = getQrSettings(hankoText || "印");
+
+        try {
+          await QRCode.toCanvas(canvas, normalizedUrl, settings);
+
+          const sealSize = Math.round(canvas.width * settings.stampRatio);
+          const whiteSize = Math.round(canvas.width * settings.whiteRatio);
+          const sealCanvas = document.createElement("canvas");
+          sealCanvas.width = sealSize;
+          sealCanvas.height = sealSize;
+          const sealCtx = sealCanvas.getContext("2d");
+
+          drawStamp(sealCtx, settings.text, sealSize, style);
+
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+
+          ctx.save();
+          ctx.translate(centerX, centerY);
+
+          ctx.shadowColor = "rgba(31, 26, 23, 0.15)";
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetY = 8;
+
+          drawRoundedRect(
+            ctx,
+            -whiteSize / 2,
+            -whiteSize / 2,
+            whiteSize,
+            whiteSize,
+            whiteSize * 0.2,
+          );
+          ctx.fillStyle = "#fffdf8";
+          ctx.fill();
+
+          ctx.shadowColor = "transparent";
+          ctx.drawImage(sealCanvas, -sealSize / 2, -sealSize / 2, sealSize, sealSize);
+          ctx.restore();
+
+          statusEl.textContent = `生成しました。${normalizedUrl}`;
+          previewNote.textContent =
+            "中央の白いマスクの上に、はんこを重ねています。読み取り性を優先しつつ、見た目も崩れにくい構成です。";
+        } catch (error) {
+          console.error(error);
+          statusEl.textContent = "生成に失敗しました。URLか入力文字を見直してください。";
+          previewNote.textContent = "うまく作れなかったので、入力を少し変えて再試行してください。";
+        }
+      }
+
+      async function downloadPng() {
+        const rawUrl = urlInput.value;
+        const normalizedUrl = normalizeUrl(rawUrl);
+
+        if (!normalizedUrl) {
+          statusEl.textContent = "先にQRを生成してください。";
+          return;
+        }
+
+        await render();
+
+        const link = document.createElement("a");
+        const stampText = (textInput.value.trim() || "印").replace(/[^\wぁ-んァ-ヶ一-龠]/g, "");
+        link.download = `qr-hanko-${stampText || "seal"}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+
+      function restoreSample() {
+        urlInput.value = sample.url;
+        textInput.value = sample.text;
+        styleInput.value = sample.style;
+        render();
+      }
+
+      let renderTimer = 0;
+      function scheduleRender() {
+        window.clearTimeout(renderTimer);
+        renderTimer = window.setTimeout(render, 180);
+      }
+
+      generateBtn.addEventListener("click", render);
+      downloadBtn.addEventListener("click", downloadPng);
+      sampleBtn.addEventListener("click", restoreSample);
+      urlInput.addEventListener("input", scheduleRender);
+      textInput.addEventListener("input", scheduleRender);
+      styleInput.addEventListener("change", render);
+
+      window.addEventListener("load", () => {
+        render();
+      });
+    </script>
   </body>
 </html>
